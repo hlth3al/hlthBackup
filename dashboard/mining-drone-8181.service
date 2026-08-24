@@ -1,0 +1,13 @@
+[Unit]
+Description=Mining Drone HIL & Edge Telemetry Dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/python3 /opt/mining_drone_app.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

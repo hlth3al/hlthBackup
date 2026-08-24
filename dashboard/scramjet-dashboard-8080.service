@@ -1,0 +1,18 @@
+[Unit]
+Description=Hydrogen Scramjet Dashboard on Port 8080
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/scramjet_backup
+Environment=PORT=8080
+Environment=FLASK_RUN_PORT=8080
+ExecStart=/usr/bin/python3 /opt/scramjet_app.py
+Restart=always
+RestartSec=3
+StandardOutput=append:/var/log/scramjet-dashboard-8080.log
+StandardError=append:/var/log/scramjet-dashboard-8080.log
+
+[Install]
+WantedBy=multi-user.target
