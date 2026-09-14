@@ -2,79 +2,770 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>پنل عملیات تولید انبوه موتورهای اسکرم‌جت</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل عملیات تولید انبوه موتورهای اسکرم جت هیدروژنه موشکهای بالستیک</title>
     <style>
-        body { background-color: #050a0f; color: #00ffcc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; }
-        .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-        .card { border: 1px solid #004444; background: #0b1419; padding: 15px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,255,204,0.1); }
-        .header { grid-column: span 4; border-bottom: 2px solid #00ffcc; padding-bottom: 10px; margin-bottom: 10px; }
-        h1 { margin: 0; font-size: 22px; color: #fff; }
-        .meta { font-size: 14px; color: #aaa; }
-        .value { font-size: 24px; font-weight: bold; color: #fff; }
-        .alarm { border-color: #ff3300; background: #2a0a0a; color: #ff5555; }
-        .btn { cursor: pointer; background: #004444; border: none; color: white; padding: 10px; margin-top: 10px; width: 100%; }
-        .radar { grid-column: span 2; grid-row: span 2; background: #000; height: 300px; display: flex; align-items: center; justify-content: center; position: relative; border: 1px solid #333; }
+        :root {
+            --bg-base: #060b11;
+            --bg-card: #0d1722;
+            --bg-card-hover: #132232;
+            --border-card: #182a3e;
+            --cyan: #00d2ff;
+            --gold: #f5a623;
+            --red: #ff334b;
+            --green: #00e676;
+            --text-main: #e2ecf5;
+            --text-dim: #7e9bb5;
+            --font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            line-height: 1.5;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* هدر تاکتیکی */
+        .header-card {
+            background: linear-gradient(180deg, #0f1f30 0%, #0b1522 100%);
+            border: 1px solid #1f3d5c;
+            border-radius: 12px;
+            padding: 14px 16px;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            color: var(--cyan);
+            font-weight: 600;
+        }
+
+        .header-badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .badge {
+            font-size: 10.5px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            background: rgba(0, 210, 255, 0.1);
+            color: var(--cyan);
+            border: 1px solid rgba(0, 210, 255, 0.3);
+        }
+
+        .badge.gold {
+            background: rgba(245, 166, 35, 0.1);
+            color: var(--gold);
+            border-color: rgba(245, 166, 35, 0.3);
+        }
+
+        .badge.green {
+            background: rgba(0, 230, 118, 0.1);
+            color: var(--green);
+            border-color: rgba(0, 230, 118, 0.3);
+        }
+
+        /* کارت عمومی */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 14px;
+            position: relative;
+        }
+
+        /* بخش پلات زنده سیگنال */
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 10px;
+            font-size: 11.5px;
+            font-weight: bold;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-bar {
+            width: 22px;
+            height: 10px;
+            border-radius: 2px;
+            border: 1.5px solid;
+        }
+
+        .legend-t { border-color: var(--red); background: rgba(255, 51, 75, 0.2); }
+        .legend-p { border-color: var(--cyan); background: rgba(0, 210, 255, 0.2); }
+        .legend-thrust { border-color: var(--gold); background: rgba(245, 166, 35, 0.2); }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 230px;
+            background: #070d14;
+            border: 1px solid #142232;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .chart-tooltip {
+            position: absolute;
+            top: 25px;
+            left: 20px;
+            background: rgba(8, 16, 26, 0.92);
+            border: 1px solid #1d3a58;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: monospace;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+            pointer-events: none;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .chart-tooltip .t-val { color: var(--red); font-weight: bold; }
+        .chart-tooltip .p-val { color: var(--cyan); font-weight: bold; }
+        .chart-tooltip .th-val { color: var(--gold); font-weight: bold; }
+
+        /* شبکه کارت‌های مقادیر زنده تله‌متری */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .metric-box {
+            background: #09131d;
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 11.5px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            font-family: monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-full {
+            grid-column: span 2;
+        }
+
+        /* دکمه‌ها */
+        .btn-test {
+            background: linear-gradient(180deg, #1982fc 0%, #0056cc 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 13px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(25, 130, 252, 0.35);
+            transition: all 0.2s;
+        }
+
+        .btn-test:active {
+            transform: scale(0.98);
+        }
+
+        .btn-simulink {
+            background: #0a1520;
+            border: 1px solid #1a334d;
+            color: #d0e4f7;
+            padding: 11px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        /* بخش آنالیز ANFIS */
+        .section-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .anfis-percent {
+            font-size: 42px;
+            font-weight: 900;
+            color: #ffffff;
+            text-align: center;
+            font-family: monospace;
+            line-height: 1;
+            margin: 10px 0 6px 0;
+        }
+
+        .anfis-sub {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .anfis-samples {
+            text-align: center;
+            font-size: 11px;
+            color: #557591;
+            margin-bottom: 14px;
+        }
+
+        .alarm-logs {
+            background: #060c13;
+            border: 1px solid rgba(255, 51, 75, 0.2);
+            border-radius: 6px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-family: monospace;
+            font-size: 10.5px;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .alarm-item {
+            color: #ff5e6c;
+        }
+
+        /* جدول مقایسه سوخت هیدروژنه و نفت‌سفید */
+        .table-responsive {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11.5px;
+            margin-top: 8px;
+        }
+
+        .table-responsive th {
+            color: var(--text-dim);
+            font-weight: 600;
+            padding: 8px 4px;
+            border-bottom: 1px solid var(--border-card);
+            text-align: center;
+        }
+
+        .table-responsive td {
+            padding: 9px 4px;
+            border-bottom: 1px solid #101c2a;
+            text-align: center;
+            font-family: monospace;
+            color: #d6e5f3;
+        }
+
+        .table-responsive tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* فرم تصمیم مهندسی و ادمین */
+        .status-badge-block {
+            background: #08111a;
+            border: 1px solid #1a2c3f;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 800;
+            color: #8faec9;
+            margin-bottom: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: #070e16;
+            border: 1px solid #1a2e44;
+            border-radius: 6px;
+            padding: 10px;
+            color: #ffffff;
+            font-size: 12px;
+            outline: none;
+            transition: border 0.2s;
+            font-family: var(--font-family);
+        }
+
+        .form-input:focus {
+            border-color: var(--cyan);
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-admin {
+            flex: 1;
+            background: #112335;
+            border: 1px solid #234567;
+            color: #79a8d4;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-admin.active {
+            background: rgba(0, 230, 118, 0.15);
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        /* مودال راهنمای HIL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--cyan);
+            border-radius: 12px;
+            padding: 18px;
+            max-width: 460px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            font-size: 12.5px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border-card);
+            padding-bottom: 8px;
+            font-weight: 800;
+            color: var(--cyan);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* استایل حالت ویرایشگر متن */
+        [data-editable="true"].editing-active {
+            outline: 1px dashed var(--gold) !important;
+            background: rgba(245, 166, 35, 0.05);
+            cursor: text;
+        }
     </style>
 </head>
 <body>
 
-<div class="dashboard">
-    <div class="header">
-        <h1>پنل عملیات تولید انبوه موتورهای اسکرم‌جت هیدروژنه (شناسه: 87097f6)</h1>
-        <div class="meta">برگرفته از پرپوزال حسین لعلیان (۱۳۹۵) | رتبه ۳۲ کنکور دکتری</div>
+<div class="container">
+
+    <!-- هدر پنل -->
+    <div class="header-card">
+        <div class="header-title" data-editable="true" data-key="header_title">پنل عملیات تولید انبوه موتورهای اسکرم جت هیدروژنه موشکهای بالستیک</div>
+        <div class="header-subtitle" data-editable="true" data-key="header_sub">برگرفته از پرپوزال حسین لعلیان سال ۱۳۹۵ | رتبه ۳۲ کنکور دکتری</div>
+        <div class="header-badge-row">
+            <span class="badge">شناسه: 87097f6</span>
+            <span class="badge gold">HIL & Simulink Sync</span>
+            <span class="badge green">ANFIS Optimized</span>
+            <span class="badge">نظارت فدرال</span>
+        </div>
     </div>
 
-    <!-- بخش تله‌متری و وضعیت -->
+    <!-- نمودار امواج و سیگنال زنده -->
     <div class="card">
-        <div>وضعیت هیدروژن (Psi)</div>
-        <div class="value">98.4 %</div>
-    </div>
-    <div class="card">
-        <div>شبیه‌ساز Simulink</div>
-        <div class="value">Active (Ready)</div>
-    </div>
-    <div class="card">
-        <div>واحد نظارت فدرال</div>
-        <div class="value">Online</div>
-    </div>
-    <div class="card alarm">
-        <div>آلارم‌های سیستم</div>
-        <div class="value">0 Active</div>
+        <div class="chart-legend">
+            <div class="legend-item"><div class="legend-bar legend-t"></div><span>T (K)</span></div>
+            <div class="legend-item"><div class="legend-bar legend-p"></div><span>P (Bar)</span></div>
+            <div class="legend-item"><div class="legend-bar legend-thrust"></div><span>Thrust (kN)</span></div>
+        </div>
+
+        <div class="chart-wrapper">
+            <canvas id="telemetryCanvas"></canvas>
+            <div class="chart-tooltip" id="chartTooltip">
+                <div style="color:#8ba5bd; margin-bottom:2px;" id="tooltipTime">12:01:37</div>
+                <div><span class="t-val">■ T (K): </span><span id="tooltipT">893'782'617</span></div>
+                <div><span class="p-val">■ P (Bar): </span><span id="tooltipP">49.18</span></div>
+                <div><span class="th-val">■ Thrust (kN): </span><span id="tooltipTh">35'751'247.13</span></div>
+            </div>
+        </div>
     </div>
 
-    <!-- بخش فنی -->
-    <div class="card">
-        <h3>HIL (سخت‌افزار در حلقه)</h3>
-        <p>وضعیت: متصل (In-Sync)</p>
-        <button class="btn">تست کالیبراسیون</button>
+    <!-- تله‌متری سریع -->
+    <div class="metrics-grid">
+        <div class="metric-box">
+            <div class="metric-label" data-editable="true" data-key="lbl_thrust">رانش (kN)</div>
+            <div class="metric-value" id="valThrust">...1248.106</div>
+        </div>
+        <div class="metric-box">
+            <div class="metric-label" data-editable="true" data-key="lbl_temp">دما (K)</div>
+            <div class="metric-value" id="valTemp">...782673.8</div>
+        </div>
+        <div class="metric-box">
+            <div class="metric-label" data-editable="true" data-key="lbl_press">فشار (Bar)</div>
+            <div class="metric-value" id="valPress">41.55</div>
+        </div>
+        <div class="metric-box">
+            <div class="metric-label" data-editable="true" data-key="lbl_flow">دبی جرمی (kg/s)</div>
+            <div class="metric-value" id="valFlow">2.97</div>
+        </div>
+        <div class="metric-box metric-full">
+            <div class="metric-label" data-editable="true" data-key="lbl_resp">زمان پاسخ (ms)</div>
+            <div class="metric-value" id="valResp">15.9</div>
+        </div>
     </div>
 
+    <!-- دکمه‌های کنترل تست و سیمولینک -->
+    <button class="btn-test" id="btnTest">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        <span data-editable="true" data-key="btn_test_txt">شروع سیگنال آزمایش (TEST)</span>
+    </button>
+
+    <button class="btn-simulink" id="btnOpenSimulink">
+        <span>◀ نحوه اتصال داده واقعی (Simulink/HIL)</span>
+    </button>
+
+    <!-- تحلیل غیرخطی ANFIS -->
     <div class="card">
-        <h3>بهینه‌سازی ANFIS</h3>
-        <p>الگوریتم: PSO (ذرات)</p>
-        <div class="value">99.2% Convergence</div>
+        <div class="section-title" data-editable="true" data-key="anfis_title">تحلیل غیرخطی ANFIS (بر پایه داده ورودی)</div>
+        <div class="anfis-percent" id="anfisScore">93.1%</div>
+        <div class="anfis-sub" data-editable="true" data-key="anfis_sub">احتمال ناپایداری: ۶.۸۹٪</div>
+        <div class="anfis-samples" data-editable="true" data-key="anfis_samples">بر پایه ۲۴۰ نمونه ورودی بهینه‌سازی شده</div>
+        
+        <div class="alarm-logs" id="alarmLogs">
+            <div class="alarm-item">08:31:37 — temp=893782714.5 (حد مجاز 2600)</div>
+            <div class="alarm-item">08:31:36 — temp=893782749.7 (حد مجاز 2600)</div>
+            <div class="alarm-item">08:31:36 — temp=893782771.4 (حد مجاز 2600)</div>
+            <div class="alarm-item">08:31:35 — temp=893782777.6 (حد مجاز 2600)</div>
+            <div class="alarm-item">08:31:35 — temp=893782767.7 (حد مجاز 2600)</div>
+        </div>
     </div>
 
-    <!-- بخش رادار (نمایشی) -->
-    <div class="radar">
-        <p>[رادار تاکتیکی فعال - موقعیت یابی واحدهای تولید]</p>
+    <!-- جدول مقایسه سوخت هیدروژنه و مرجع -->
+    <div class="card">
+        <div class="section-title" data-editable="true" data-key="table_title">مقایسه کمی سوخت: مرجع (نفت سفید) در برابر هیدروژن</div>
+        <table class="table-responsive">
+            <thead>
+                <tr>
+                    <th>معیار</th>
+                    <th>مرجع (نفت سفید)</th>
+                    <th>هیدروژن</th>
+                    <th>اختلاف</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td data-editable="true" data-key="row1_lbl">رانش</td>
+                    <td>—</td>
+                    <td>3575125</td>
+                    <td>—</td>
+                </tr>
+                <tr>
+                    <td data-editable="true" data-key="row2_lbl">دمای کاری (K)</td>
+                    <td>—</td>
+                    <td>893782573.075</td>
+                    <td>—</td>
+                </tr>
+                <tr>
+                    <td data-editable="true" data-key="row3_lbl">فشار کاری (Bar)</td>
+                    <td>—</td>
+                    <td>46.076</td>
+                    <td>—</td>
+                </tr>
+                <tr>
+                    <td data-editable="true" data-key="row4_lbl">دبی جرمی (kg/s)</td>
+                    <td>—</td>
+                    <td>3.192</td>
+                    <td>—</td>
+                </tr>
+                <tr>
+                    <td data-editable="true" data-key="row5_lbl">زمان پاسخ (ms)</td>
+                    <td>—</td>
+                    <td>13.96</td>
+                    <td>—</td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="font-size: 10px; color: var(--text-dim); text-align: center; margin-top: 10px;" data-editable="true" data-key="table_foot">
+            مقادیر از میانگین نمونه‌های دریافتی واقعی محاسبه می‌شوند؛ در نبود داده «—» نمایش داده می‌شود.
+        </div>
     </div>
 
+    <!-- فرم تصمیم مهندسی و احراز هویت ادمین -->
     <div class="card">
-        <h3>گزارش تولید نهایی</h3>
-        <ul>
-            <li>موتور 1: عملیاتی</li>
-            <li>موتور 2: در حال تست</li>
-            <li>موتور 3: در صف انتظار</li>
-        </ul>
+        <div class="section-title" data-editable="true" data-key="decision_title">تصمیم مهندسی و تایید تولید</div>
+        <div class="status-badge-block" id="approvalStatus" data-editable="true" data-key="status_text">در انتظار تأیید رسمی</div>
+        
+        <div class="form-group">
+            <label class="form-label">رمز ادمین (جهت ویرایش کلمات و ثبت تایید):</label>
+            <input type="password" id="adminPass" class="form-input" placeholder="رمز عبور مدیر...">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">نام مسئول مهندسی تأییدکننده:</label>
+            <input type="text" id="adminName" class="form-input" placeholder="نام و سمت سازمانی...">
+        </div>
+
+        <div class="admin-controls">
+            <button class="btn-admin" id="btnToggleEdit">🔒 ورود ادمین و ویرایش متون</button>
+            <button class="btn-admin" id="btnApprove">✓ ثبت تایید نهایی</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- مدال راهنمای Simulink / HIL -->
+<div class="modal" id="simulinkModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>پروتکل اتصال زنده به Simulink و سخت‌افزار HIL</span>
+            <button class="close-btn" id="closeModal">&times;</button>
+        </div>
+        <p style="margin-bottom: 10px;">برای تزریق داده‌های بلادرنگ مدل پرپوزال ۱۳۹۵ به پنل:</p>
+        <ol style="padding-right: 18px; margin-bottom: 10px; color: #a5c7e5; line-height: 1.8;">
+            <li>بلوک <b>UDP / WebSocket Send</b> را در مدل Simulink اسکرم‌جت قرار دهید.</li>
+            <li>پورت خروجی تله‌متری را روی <code>8080</code> یا وب‌سوکت محلی ست کنید.</li>
+            <li>خروجی سنسورهای فشار هیدروژن، دمای محفظه احتراق و تراست را در قالب آرایه JSON ارسال نمایید.</li>
+            <li>موتور ANFIS الگوریتم بهینه‌سازی را مستقیماً روی ورودی‌ها تطبیق می‌دهد.</li>
+        </ol>
+        <button class="btn-test" style="padding: 8px; font-size: 12px;" onclick="document.getElementById('simulinkModal').style.display='none'">متوجه شدم</button>
     </div>
 </div>
 
 <script>
-    // شبیه‌سازی زنده داده‌ها
+    // --- مدیریت رمز و ذخیره‌سازی محلی (LocalStorage) جهت ویرایش کلمات توسط مدیر ---
+    const ADMIN_PASS = "1395"; // رمز پیش‌فرض ادمین (قابل ویرایش)
+    let isEditMode = false;
+
+    // بارگذاری تغییرات ذخیره شده قبلی
+    function loadSavedTexts() {
+        document.querySelectorAll('[data-editable="true"]').forEach(el => {
+            const key = el.getAttribute('data-key');
+            const saved = localStorage.getItem('scramjet_' + key);
+            if (saved !== null) {
+                el.innerText = saved;
+            }
+        });
+    }
+
+    // فعال/غیرفعال‌سازی حالت ویرایش متون
+    document.getElementById('btnToggleEdit').addEventListener('click', () => {
+        const pass = document.getElementById('adminPass').value;
+        if (pass !== ADMIN_PASS) {
+            alert('رمز ادمین نامعتبر است! (رمز پیش‌فرض: 1395)');
+            return;
+        }
+
+        isEditMode = !isEditMode;
+        const btn = document.getElementById('btnToggleEdit');
+        
+        document.querySelectorAll('[data-editable="true"]').forEach(el => {
+            if (isEditMode) {
+                el.contentEditable = "true";
+                el.classList.add('editing-active');
+            } else {
+                el.contentEditable = "false";
+                el.classList.remove('editing-active');
+                // ذخیره تغییرات
+                const key = el.getAttribute('data-key');
+                localStorage.setItem('scramjet_' + key, el.innerText.trim());
+            }
+        });
+
+        if (isEditMode) {
+            btn.classList.add('active');
+            btn.innerText = '🔓 ذخیره تغییرات متون';
+            alert('حالت ویرایش فعال شد. اکنون می‌توانید روی هر متنی در پنل کلیک کرده و آن را ویرایش کنید. پس از پایان، مجدداً همین دکمه را بزنید.');
+        } else {
+            btn.classList.remove('active');
+            btn.innerText = '🔒 ورود ادمین و ویرایش متون';
+            alert('تمامی تغییرات متنی با موفقیت ذخیره شدند.');
+        }
+    });
+
+    // ثبت تایید رسمی
+    document.getElementById('btnApprove').addEventListener('click', () => {
+        const pass = document.getElementById('adminPass').value;
+        const name = document.getElementById('adminName').value.trim();
+        if (pass !== ADMIN_PASS) {
+            alert('رمز ادمین نامعتبر است!');
+            return;
+        }
+        if (!name) {
+            alert('لطفاً نام مسئول تأییدکننده را وارد کنید.');
+            return;
+        }
+        const st = document.getElementById('approvalStatus');
+        st.innerText = `✓ تایید رسمی صادر شد توسط: ${name}`;
+        st.style.color = '#00e676';
+        st.style.borderColor = '#00e676';
+        localStorage.setItem('scramjet_status_text', st.innerText);
+    });
+
+    // --- مدیریت مودال HIL ---
+    document.getElementById('btnOpenSimulink').onclick = () => document.getElementById('simulinkModal').style.display = 'flex';
+    document.getElementById('closeModal').onclick = () => document.getElementById('simulinkModal').style.display = 'none';
+
+    // --- موتور انیمیشن نمودار سیگنال تله‌متری (Canvas) ---
+    const canvas = document.getElementById('telemetryCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let step = 0;
+    let isTesting = false;
+
+    function resizeCanvas() {
+        width = canvas.parentElement.clientWidth;
+        height = canvas.parentElement.clientHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function drawChart() {
+        ctx.clearRect(0, 0, width, height);
+
+        // خطوط شبکه مشبک پس‌زمینه
+        ctx.strokeStyle = '#101c2a';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < width; x += 40) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+        }
+        for (let y = 0; y < height; y += 35) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+        }
+
+        // رسم سه موج سینوسی سینک شده با نوسانات اسکرم‌جت
+        drawWave(step, 0.03, height * 0.35, height * 0.5, '#ff334b', 2); // T (دمای احتراق)
+        drawWave(step + 20, 0.035, height * 0.38, height * 0.5, '#00d2ff', 2); // P (فشار)
+        drawWave(step + 40, 0.025, height * 0.32, height * 0.5, '#f5a623', 2); // Thrust (رانش)
+
+        step += isTesting ? 0.08 : 0.02;
+        requestAnimationFrame(drawChart);
+    }
+
+    function drawWave(offset, freq, amp, yCenter, color, lineWidth) {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+        for (let x = 0; x < width; x++) {
+            const y = yCenter + Math.sin((x * freq) + offset) * amp * Math.cos((x * 0.005) + offset * 0.5);
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+    }
+
+    drawChart();
+
+    // نوسان ارقام تله‌متری هنگام تست آزمایشگاهی
+    document.getElementById('btnTest').addEventListener('click', () => {
+        isTesting = !isTesting;
+        const btn = document.getElementById('btnTest');
+        if (isTesting) {
+            btn.style.background = 'linear-gradient(180deg, #e60026 0%, #a80017 100%)';
+            btn.querySelector('span').innerText = 'توقف سیگنال آزمایش (RUNNING...)';
+        } else {
+            btn.style.background = 'linear-gradient(180deg, #1982fc 0%, #0056cc 100%)';
+            btn.querySelector('span').innerText = 'شروع سیگنال آزمایش (TEST)';
+        }
+    });
+
     setInterval(() => {
-        document.querySelectorAll('.value')[0].innerText = (98 + Math.random()).toFixed(1) + " %";
-    }, 3000);
+        if (isTesting) {
+            document.getElementById('valThrust').innerText = '...' + (1240 + Math.random() * 20).toFixed(3);
+            document.getElementById('valTemp').innerText = '...' + (782600 + Math.random() * 150).toFixed(1);
+            document.getElementById('valPress').innerText = (40 + Math.random() * 3).toFixed(2);
+            document.getElementById('valFlow').innerText = (2.8 + Math.random() * 0.4).toFixed(2);
+            document.getElementById('valResp').innerText = (14 + Math.random() * 3).toFixed(1);
+            document.getElementById('tooltipP').innerText = (48 + Math.random() * 2).toFixed(2);
+        }
+    }, 400);
+
+    // بارگذاری اولیه مقادیر
+    loadSavedTexts();
 </script>
 </body>
 </html>
